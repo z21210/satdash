@@ -1,5 +1,3 @@
-import pandas as pd
-
 # a curse upon NORAD for this format
 # may a thousand years of drive failures befall you
 _non_standard_form2float = lambda s: (-1 if s[0]=='-' else 1) * float('.'+s[1:6]) *10**int(s[6:8])
@@ -30,3 +28,5 @@ def transform(df):
 		'revolutions':int,
 		'checksum2':int
 	})
+	df = df.set_index('catalog_number')
+	return df

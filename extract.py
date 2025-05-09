@@ -1,4 +1,5 @@
 import requests as r
+import pandas as pd
 
 def _tle2dict(name, l1, l2):
 	return {
@@ -28,8 +29,8 @@ def _tle2dict(name, l1, l2):
 
 _tles2dicts = lambda a: [_tle2dict(n,l1,l2) for n,l1,l2 in a]
 
-def fetch_sats():
-	resp = r.get("https://celestrak.org/NORAD/elements/gp.php?GROUP=active")
+def extract():
+	resp = r.get('https://celestrak.org/NORAD/elements/gp.php?GROUP=active')
 	lines = resp.text.split('\r\n')
 	tles = [lines[i:i+3] for i in range(0, len(lines)-1, 3)]
-	return _tles2dicts(tles)
+	return pd.DataFrame(_tles2dicts(tles))
