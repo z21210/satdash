@@ -16,15 +16,13 @@ def _tle2dict(name, l1, l2):
 		'drag':l1[53:61],
 		'ephemeris':l1[62:63],
 		'set_number':l1[64:68],
-		'checksum1':l1[68:69],
 		'inclination':l2[8:16],
 		'right_ascension':l2[17:25],
 		'eccentricity':l2[26:33],
 		'periapsis_argument':l2[34:42],
 		'mean_anomaly':l2[43:51],
 		'revolution_rate':l2[52:63],
-		'revolutions':l2[63:68],
-		'checksum2':l2[68:69]
+		'revolutions':l2[63:68]
 	}
 
 _tles2dicts = lambda a: [_tle2dict(n,l1,l2) for n,l1,l2 in a]

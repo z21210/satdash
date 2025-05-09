@@ -20,13 +20,11 @@ def transform(df):
 		'day':float,
 		'velocity':float,
 		'set_number':int,
-		'checksum1':int,
 		'right_ascension':float,
 		'periapsis_argument':float,
 		'mean_anomaly':float,
 		'revolution_rate':float,
-		'revolutions':int,
-		'checksum2':int
+		'revolutions':int
 	})
 	df = df.set_index('catalog_number')
 	return df
