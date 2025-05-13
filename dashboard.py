@@ -4,49 +4,60 @@ import sqlalchemy as sa
 import os
 import env
 
-#db, schema, table = os.getenv('DB'), os.getenv('SCHEMA'), os.getenv('TABLE')
-#df = pd.read_sql_table(table, sa.create_engine(db), schema=schema)
-
 from astropy import units as u
-from hapsira.earth import EarthSatellite
-from hapsira.earth.plotting import GroundtrackPlotter
-from hapsira.examples import iss
+from astropy.time import Time
 from hapsira.util import time_range
-from hapsira.bodies import Earth, Sun
 from hapsira.constants import J2000
-from hapsira.plotting import OrbitPlotter
-from hapsira.plotting.orbit.backends import Plotly3D
+from hapsira.bodies import Earth
 from hapsira.twobody import Orbit
+from hapsira.earth import EarthSatellite
+from hapsira.plotting.orbit.backends import Plotly3D
+from hapsira.plotting import OrbitPlotter
+from hapsira.earth.plotting import GroundtrackPlotter
+from sgp4.api import Satrec
 
-iss_spacecraft = EarthSatellite(iss, None)
-t_span = time_range(
-    iss.epoch - 1.5 * u.h, num_values=150, end=iss.epoch + 1.5 * u.h
-)
-# Generate an instance of the plotter, add title and show latlon grid
+# load data from database
+db, schema, table = os.getenv('DB'), os.getenv('SCHEMA'), os.getenv('TABLE')
+df = pd.read_sql_table(table, sa.create_engine(db), schema=schema, index_col='catalog_number')
+# create Satrecs
+df['satrec'] = df.apply(lambda s: Satrec.twoline2rv(*s[['l1','l2']]), axis=1)
+# create plotters
 gp = GroundtrackPlotter()
-gp.update_layout(title="International Space Station groundtrack")
+op = OrbitPlotter(backend=Plotly3D())
 
-frame = OrbitPlotter(backend=Plotly3D())
-frame.plot(iss)
-
+# UI layout
 with st.sidebar:
     st.write("Select Satellites")
-    options = st.multiselect(
-    "Select Satellites",
-    ["ISS (ZARYA)"],
-    default=["ISS (ZARYA)"],
-)
+    selected = st.multiselect(
+        "Select Satellites",
+        df.index,
+        format_func=lambda i: df.loc[i]['name'],
+        default=[25544], # ISS
+    )
 tabGT, tabO = st.tabs(["Groundtrack", "Orbit"])
+tabGT.plotly_chart(gp.fig)
+tabO.plotly_chart(op.backend.figure)
 
-tabGT.plotly_chart(gp.plot(
-    iss_spacecraft,
-    t_span,
-    label="ISS",
-    color="red",
-    marker={
-        "size": 10,
-        "symbol": "triangle-right",
-        "line": {"width": 1, "color": "black"},
-    },
-))
-tabO.plotly_chart(frame.backend.figure)
+# plot selected satellites
+now = Time.now()
+jd, fr = now.jd1, now.jd2
+for s in selected:
+    e, r, v = df.loc[s]['satrec'].sgp4(jd, fr)
+    if e != 0:
+        continue
+    orbit = Orbit.from_vectors(Earth, r<<u.km, v<<(u.km/u.s), epoch=now)
+
+    gp.plot(
+        EarthSatellite(orbit, None),
+        time_range(
+            now-1.5*u.h, num_values=150, end=now+1.5*u.h
+        ),
+        label=df.loc[s]['name'],
+        color="blue",
+        marker={
+            "size": 10,
+            "symbol": "triangle-right",
+            "line": {"width": 1, "color": "black"},
+        },
+    )
+    op.plot(orbit)

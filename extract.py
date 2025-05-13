@@ -4,6 +4,8 @@ import pandas as pd
 def _tle2dict(name, l1, l2):
 	return {
 		'name':name,
+		'l1':l1,
+		'l2':l2,
 		'catalog_number':l1[2:7],
 		'classification':l1[7:8],
 		'launch_year':l1[9:11],
