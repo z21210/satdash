@@ -25,6 +25,8 @@ def fetch_satellite_data():
     df = pd.read_sql_table(table, sa.create_engine(db), schema=schema, index_col='catalog_number')
     return df
 df = fetch_satellite_data()
+# create Satrecs
+df['satrec'] = df.apply(lambda s: Satrec.twoline2rv(*s[['l1','l2']]), axis=1)
 
 # UI layout
 with st.sidebar:
@@ -32,12 +34,6 @@ with st.sidebar:
     view = st.radio(
         'View',
         ['Groundtrack', 'Orbit', 'Data']
-    )
-    selected = st.multiselect(
-        'Search Satellites',
-        df.index,
-        format_func=lambda i: df.loc[i]['name'],
-        default=[25544], # ISS
     )
     live = st.toggle(
         'Live view',
@@ -51,12 +47,13 @@ with st.sidebar:
         max_value=600,
         value=10
     )
+    selected = st.multiselect(
+        'Search Satellites',
+        df.index,
+        format_func=lambda i: df.loc[i]['name'],
+        default=[25544], # ISS
+    )
 plot = st.empty()
-
-
-# create Satrecs
-df['satrec'] = df.apply(lambda s: Satrec.twoline2rv(*s[['l1','l2']]), axis=1)
-
 
 # if data view, render once
 if view == 'Data':
@@ -65,6 +62,7 @@ if view == 'Data':
 # if plot view, render once or forever
 else:
     while True:
+        # initialise plotting variables
         plot.empty()
         gp = GroundtrackPlotter()
         op = OrbitPlotter(backend=Plotly3D())
