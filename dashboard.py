@@ -57,7 +57,10 @@ plot = st.empty()
 
 # if data view, render once
 if view == 'Data':
-    pass
+    years = range(df['launch_year'].min(), df['launch_year'].max()+1)
+    sats = [df[df['launch_year']<=y]['name'].nunique() for y in years]
+    data = pd.DataFrame({'year':years, 'satellites':sats}).astype({'year':str})
+    st.line_chart(data, x='year')
 
 # if plot view, render once or forever
 else:
