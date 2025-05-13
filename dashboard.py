@@ -15,6 +15,7 @@ from hapsira.earth import EarthSatellite
 from hapsira.plotting.orbit.backends import Plotly3D
 from hapsira.plotting import OrbitPlotter
 from hapsira.earth.plotting import GroundtrackPlotter
+from plotly.colors import qualitative as colours
 from sgp4.api import Satrec
 
 @st.cache_data
@@ -60,6 +61,7 @@ df['satrec'] = df.apply(lambda s: Satrec.twoline2rv(*s[['l1','l2']]), axis=1)
 # if data view, render once
 if view == 'Data':
     pass
+
 # if plot view, render once or forever
 else:
     while True:
@@ -68,11 +70,13 @@ else:
         op = OrbitPlotter(backend=Plotly3D())
         now = Time.now()
         jd, fr = now.jd1, now.jd2
+        i_colour = -1
         for s in selected:
             e, r, v = df.loc[s]['satrec'].sgp4(jd, fr)
             if e != 0:
                 continue
             orbit = Orbit.from_vectors(Earth, r<<u.km, v<<(u.km/u.s), epoch=now)
+            colour = colours.Light24[i_colour:=(i_colour+1)%len(colours.Light24)] # cycle through 24 colours
             # groundtrack
             if view == 'Groundtrack':
                 gp.plot(
@@ -81,7 +85,10 @@ else:
                         now-1.5*u.h, num_values=150, end=now+1.5*u.h
                     ),
                     label=df.loc[s]['name'],
-                    color='blue',
+                    color=colour,
+                    line_style={
+                        'color':colour
+                    },
                     marker={
                         'size': 10,
                         'symbol': 'triangle-right',
@@ -94,7 +101,8 @@ else:
             elif view == 'Orbit':
                 op.plot(
                     orbit,
-                    label=df.loc[s]['name']
+                    label=df.loc[s]['name'],
+                    color=colour
                 )
                 with plot.container():
                     st.plotly_chart(op.backend.figure)
