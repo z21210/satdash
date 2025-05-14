@@ -5,6 +5,7 @@ import sqlalchemy as sa
 import os
 import env
 import time
+import plotly.express as px
 
 from astropy import units as u
 from astropy.time import Time
@@ -30,37 +31,54 @@ df = fetch_satellite_data()
 
 # UI layout
 with st.sidebar:
-    st.write('Select Satellites')
     view = st.radio(
         'View',
-        ['Data', 'Orbit', 'Groundtrack']
+        ['Data', 'Orbit', 'Groundtrack', 'Satellite']
     )
-    live = st.toggle(
-        'Live view',
-        disabled= view=='Data',
-        help='Plots will be re-rendered each interval'
-    )
-    interval = st.number_input(
-        'Refresh interval (s)',
-        disabled= view=='Data' or not live,
-        min_value=5,
-        max_value=600,
-        value=10
-    )
-    selected = st.multiselect(
-        'Search Satellites',
-        df.index,
-        format_func=lambda i: df.loc[i]['name'],
-        default=[25544], # ISS
-    )
+    if view in ['Orbit', 'Groundtrack']:
+        selected = st.multiselect(
+            'Search Satellites',
+            df.index,
+            format_func=lambda i: df.loc[i]['name'],
+            default=[25544], # ISS
+        )
+        live = st.toggle(
+            'Live view',
+            disabled= view in ['Data', 'Satellite'],
+            help='Plots will be re-rendered each interval'
+        )
+        interval = st.number_input(
+            'Refresh interval (s)',
+            disabled= view in ['Data', 'Satellite'] or not live,
+            min_value=5,
+            max_value=600,
+            value=10
+        )
+    elif view == 'Satellite':
+        selected = st.selectbox(
+            'Search Satellites',
+            df.index,
+            format_func=lambda i: df.loc[i]['name'],
+            index=df.index.get_loc(25544) # ISS
+        )
 plot = st.empty()
 
 # if data view, render once
 if view == 'Data':
+    # cumulative satellite launches
     years = range(df['launch_year'].min(), df['launch_year'].max()+1)
     sats = [df[df['launch_year']<=y]['name'].nunique() for y in years]
     data = pd.DataFrame({'year':years, 'satellites':sats}).astype({'year':str})
-    st.line_chart(data, x='year')
+    st.plotly_chart(px.line(data, x='year', y='satellites', title='Cumulative satellite launches'))
+    # eccentricity histogram
+    st.plotly_chart(px.histogram(df['eccentricity'], nbins=20, title='Eccentricity distribution'))
+    # inclination histogram
+    st.plotly_chart(px.histogram(df['inclination'], nbins=20, title='Inclination distribution'))
+    # semi-major axis vs velocity plot
+    st.plotly_chart(px.scatter(df, x='revolution_rate', y='semi-major_axis', title='Daily revolutions vs semi-major axis'))
+
+elif view == 'Satellite':
+    df.loc[selected]
 
 # if plot view, render once or forever
 else:
