@@ -112,7 +112,7 @@ else:
                     },
                     marker={
                         'size': 10,
-                        'symbol': 'triangle-right',
+                        'symbol': 'triangle-right' if df.loc[s]['inclination'] < 90 else 'triangle-left',
                         'line': {'width': 1, 'color': 'black'},
                     },
                 )
