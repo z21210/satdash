@@ -26,15 +26,14 @@ def fetch_satellite_data():
     df = pd.read_sql_table(table, sa.create_engine(db), schema=schema, index_col='catalog_number')
     return df
 df = fetch_satellite_data()
-# create Satrecs
-df['satrec'] = df.apply(lambda s: Satrec.twoline2rv(*s[['l1','l2']]), axis=1)
+
 
 # UI layout
 with st.sidebar:
     st.write('Select Satellites')
     view = st.radio(
         'View',
-        ['Groundtrack', 'Orbit', 'Data']
+        ['Data', 'Orbit', 'Groundtrack']
     )
     live = st.toggle(
         'Live view',
@@ -72,11 +71,11 @@ else:
         op = OrbitPlotter(backend=Plotly3D())
         now = Time.now()
         jd, fr = now.jd1, now.jd2
-        satrecs = SatrecArray([df.loc[s]['satrec'] for s in selected])
+        # calculate orbits
+        satrecs = SatrecArray([Satrec.twoline2rv(*df.loc[s][['l1','l2']]) for s in selected])
         errs, poss, vels = satrecs.sgp4(np.array([jd]), np.array([fr]))
         for i in range(len(selected)):
             s = selected[i]
-            #e, r, v = df.loc[s]['satrec'].sgp4(jd, fr)
             if errs[i][0] != 0:
                 continue
             orbit = Orbit.from_vectors(Earth, poss[i][0]<<u.km, vels[i][0]<<(u.km/u.s), epoch=now)
