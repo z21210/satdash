@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import sqlalchemy as sa
 import os
 import env
@@ -16,7 +17,7 @@ from hapsira.plotting.orbit.backends import Plotly3D
 from hapsira.plotting import OrbitPlotter
 from hapsira.earth.plotting import GroundtrackPlotter
 from plotly.colors import qualitative as colours
-from sgp4.api import Satrec
+from sgp4.api import Satrec, SatrecArray
 
 @st.cache_data
 def fetch_satellite_data():
@@ -71,13 +72,15 @@ else:
         op = OrbitPlotter(backend=Plotly3D())
         now = Time.now()
         jd, fr = now.jd1, now.jd2
-        i_colour = -1
-        for s in selected:
-            e, r, v = df.loc[s]['satrec'].sgp4(jd, fr)
-            if e != 0:
+        satrecs = SatrecArray([df.loc[s]['satrec'] for s in selected])
+        errs, poss, vels = satrecs.sgp4(np.array([jd]), np.array([fr]))
+        for i in range(len(selected)):
+            s = selected[i]
+            #e, r, v = df.loc[s]['satrec'].sgp4(jd, fr)
+            if errs[i][0] != 0:
                 continue
-            orbit = Orbit.from_vectors(Earth, r<<u.km, v<<(u.km/u.s), epoch=now)
-            colour = colours.Light24[i_colour:=(i_colour+1)%len(colours.Light24)] # cycle through 24 colours
+            orbit = Orbit.from_vectors(Earth, poss[i][0]<<u.km, vels[i][0]<<(u.km/u.s), epoch=now)
+            colour = colours.Light24[i%len(colours.Light24)] # cycle through 24 colours
             # groundtrack
             if view == 'Groundtrack':
                 gp.plot(
