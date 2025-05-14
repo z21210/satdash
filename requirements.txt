@@ -20,6 +20,7 @@ greenlet==3.2.2
 hapsira @ git+https://github.com/smcHannah/hapsira.git@8f0424f99ce10e6fc923301299ca8cb8039c67ba
 html5lib==1.1
 idna==3.10
+iniconfig==2.1.0
 jaraco.classes==3.4.0
 jaraco.context==6.0.1
 jaraco.functools==4.1.0
@@ -41,6 +42,7 @@ packaging==24.2
 pandas==2.2.3
 pillow==11.2.1
 plotly==6.0.1
+pluggy==1.5.0
 protobuf==6.30.2
 psycopg2==2.9.10
 pyarrow==20.0.0
@@ -48,6 +50,7 @@ pycparser==2.22
 pydeck==0.9.1
 pyerfa==2.0.1.5
 pyparsing==3.2.3
+pytest==8.3.5
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 pytz==2025.2
@@ -58,6 +61,7 @@ requests==2.32.3
 rpds-py==0.24.0
 scipy==1.15.3
 SecretStorage==3.3.3
+sgp4==2.24
 six==1.17.0
 smmap==5.0.2
 soupsieve==2.7
