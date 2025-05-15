@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import sqlalchemy as sa
-import os
-import env
+import requests
 import time
-import plotly.express as px
 
+from extract import extract
+from transform import transform
+
+import plotly.express as px
 from astropy import units as u
 from astropy.time import Time
 from hapsira.util import time_range
@@ -22,9 +23,8 @@ from sgp4.api import Satrec, SatrecArray
 
 @st.cache_data
 def fetch_satellite_data():
-    # load data from database
-    db, schema, table = os.getenv('DB'), os.getenv('SCHEMA'), os.getenv('TABLE')
-    df = pd.read_sql_table(table, sa.create_engine(db), schema=schema, index_col='catalog_number')
+    # load data from celestrak
+    df = transform(extract())
     return df
 df = fetch_satellite_data()
 
