@@ -4,6 +4,9 @@ View groundtracks and orbits of active satellites (as tracked by NORAD).
 See trends in satellites.
 Look up information about the orbits of over 10,000 satellites.
 
+Run etl.py to update the database.
+Run sreamlit dashboard.py to see the dashboard.
+
 Dataset used:
 https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle
 Key works used:
