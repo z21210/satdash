@@ -21,7 +21,8 @@ from hapsira.earth.plotting import GroundtrackPlotter
 from plotly.colors import qualitative as colours
 from sgp4.api import Satrec, SatrecArray
 
-@st.cache_data
+# keep cache for 1 day
+@st.cache_data(ttl='1d', show_spinner='Fetching latest satellite data')
 def fetch_satellite_data():
     # load data from celestrak
     df = transform(extract())
@@ -131,3 +132,5 @@ else:
         if not live:
             break
         time.sleep(interval)
+        # refresh cache if out of date
+        df = fetch_satellite_data()
