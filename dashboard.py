@@ -33,14 +33,17 @@ df = fetch_satellite_data()
 with st.sidebar:
     view = st.radio(
         'View',
-        ['Data', 'Orbit', 'Groundtrack', 'Satellite']
+        ['Orbit', 'Groundtrack', 'Satellite', 'Data']
     )
     if view in ['Orbit', 'Groundtrack']:
         selected = st.multiselect(
-            'Search Satellites',
+            'Search Satellites by name',
             df.index,
             format_func=lambda i: df.loc[i]['name'],
             default=[25544], # ISS
+        )
+        regexp = st.text_input(
+            'Search Satellites by RegEx',
         )
         live = st.toggle(
             'Live view',
@@ -83,6 +86,8 @@ elif view == 'Satellite':
 # if plot view, render once or forever
 else:
     while True:
+        # select by regex if used
+        selected.extend(df[df['name'].str.fullmatch(regexp, case=False)].index)
         # initialise plotting variables
         plot.empty()
         gp = GroundtrackPlotter()
